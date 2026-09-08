@@ -1,0 +1,12 @@
+# Data processing
+pandas
+numpy
+
+# SQL Server connectivity
+SQLAlchemy
+pyodbc
+
+# Notebook and visualization
+jupyter
+matplotlib
+seaborn
