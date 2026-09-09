@@ -1,6 +1,6 @@
 ## Commercial Banking Analytics Warehouse
 
-version: 2.0
+version 1.1 - updated by Sep 2025
 
 ## Project Summary
 
