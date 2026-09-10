@@ -201,9 +201,9 @@ FROM gold.dim_customer AS c
  JOIN CardExposure AS ce ON ce.client_id = c.client_id;
 GO
 
--- =============================================================================
+-- ============================================================================
 -- Merchant risk patterns: categories with error rates and transaction volumes
--- =============================================================================
+-- ============================================================================
 
 CREATE OR ALTER VIEW gold.vw_merchant_risk_exposure AS
 SELECT 
@@ -226,36 +226,61 @@ GO
 -- ==================================================================================
 
 CREATE OR ALTER VIEW gold.vw_fraud_alerts AS
+WITH TransactionSignals AS (
+    SELECT
+        ft.*,
+        LAG(ft.date) OVER (
+            PARTITION BY ft.client_id, ft.card_id, ft.merchant_id, ft.amount
+            ORDER BY ft.date, ft.transaction_id
+        ) AS previous_matching_transaction_date
+    FROM gold.fact_transactions AS ft
+)
 SELECT
-    ft.transaction_id,
-    ft.date,
-    ft.client_id,
-    dc.card_id,
-    dc.card_brand,
-    dc.card_type,
-    ft.amount,
-    ft.merchant_id,
-    ft.merchant_city,
-    ft.merchant_state,
-    ft.mcc_id,
+    ts.transaction_id,
+    ts.date,
+    ts.client_id,
+    ts.card_id,
+    ts.amount,
+    ts.merchant_id,
+    ts.merchant_city,
+    ts.merchant_state,
+    ts.mcc_id,
     dm.Description AS merchant_category,
-    ft.errors,
-    CASE WHEN ft.amount > 1000 THEN 1 ELSE 0 END AS high_amount_flag,
-    CASE WHEN ft.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ft.errors))) > 0 THEN 1 ELSE 0 END AS error_flag,
-    CASE WHEN ft.use_chip <> 'Chip Transaction' THEN 1 ELSE 0 END AS chip_anomaly_flag,
-    CASE WHEN ft.amount < 0 THEN 1 ELSE 0 END AS negative_amount_flag,
-    -- Fraud risk score: sum of all flags
-    (CASE WHEN ft.amount > 1000 THEN 1 ELSE 0 END +
-     CASE WHEN ft.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ft.errors))) > 0 THEN 1 ELSE 0 END +
-     CASE WHEN ft.use_chip <> 'Chip Transaction' THEN 1 ELSE 0 END +
-     CASE WHEN ft.amount < 0 THEN 1 ELSE 0 END) AS fraud_risk_score
-FROM gold.fact_transactions ft
- JOIN gold.dim_card dc ON ft.card_id = dc.card_id
- JOIN gold.dim_mcc dm ON ft.mcc_id = dm.mcc_id
-WHERE ft.amount > 1000
-   OR (ft.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ft.errors))) > 0)
-   OR ft.use_chip <> 'Chip Transaction'
-   OR ft.amount < 0;
+    ts.use_chip,
+    ts.errors,
+    CASE WHEN ABS(ts.amount) > 1000 THEN 1 ELSE 0 END AS high_value_flag,
+    CASE WHEN ts.amount < 0 THEN 1 ELSE 0 END AS negative_amount_flag,
+    CASE WHEN ts.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ts.errors))) > 0 THEN 1 ELSE 0 END AS error_flag,
+    CASE WHEN ts.use_chip <> 'Chip Transaction' THEN 1 ELSE 0 END AS non_chip_flag,
+    CASE WHEN ts.previous_matching_transaction_date IS NOT NULL
+              AND DATEDIFF(MINUTE, ts.previous_matching_transaction_date, ts.date) <= 5
+         THEN 1 ELSE 0 END AS repeated_short_term_flag,
+    CASE
+        WHEN ts.previous_matching_transaction_date IS NOT NULL
+             AND DATEDIFF(MINUTE, ts.previous_matching_transaction_date, ts.date) <= 5 THEN 'Repeated short-term transaction'
+        WHEN ABS(ts.amount) > 1000
+         AND ts.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ts.errors))) > 0 THEN 'High value with error'
+        WHEN ABS(ts.amount) > 1000 THEN 'High value transaction'
+        WHEN ts.amount < 0 THEN 'Negative amount'
+        WHEN ts.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ts.errors))) > 0 THEN 'Transaction error'
+        WHEN ts.use_chip <> 'Chip Transaction' THEN 'Non-chip transaction'
+        ELSE 'No indicator'
+    END AS primary_risk_indicator,
+    (CASE WHEN ABS(ts.amount) > 1000 THEN 1 ELSE 0 END
+     + CASE WHEN ts.amount < 0 THEN 1 ELSE 0 END
+     + CASE WHEN ts.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ts.errors))) > 0 THEN 1 ELSE 0 END
+     + CASE WHEN ts.use_chip <> 'Chip Transaction' THEN 1 ELSE 0 END
+     + CASE WHEN ts.previous_matching_transaction_date IS NOT NULL
+                  AND DATEDIFF(MINUTE, ts.previous_matching_transaction_date, ts.date) <= 5
+            THEN 1 ELSE 0 END) AS risk_indicator_count
+FROM TransactionSignals AS ts
+LEFT JOIN gold.dim_mcc AS dm ON ts.mcc_id = dm.mcc_id
+WHERE ABS(ts.amount) > 1000
+   OR ts.amount < 0
+   OR (ts.errors IS NOT NULL AND LEN(LTRIM(RTRIM(ts.errors))) > 0)
+   OR ts.use_chip <> 'Chip Transaction'
+   OR (ts.previous_matching_transaction_date IS NOT NULL
+       AND DATEDIFF(MINUTE, ts.previous_matching_transaction_date, ts.date) <= 5);
 GO
 
 -- =======================================
