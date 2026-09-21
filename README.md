@@ -1,8 +1,6 @@
 ## Data Warehouse Commercial Banking Project
 
-Version 1.1
-
-Updated on Sep 2025
+Updated on September 2025
 
 ## Project Summary
 
@@ -20,12 +18,12 @@ The bank needs a repeatable data preparation and reporting process that improves
 
 ## Business Questions
 
-`operations and marketing`
+`Operations and marketing`
 
 1. How do retention rate, active customers, transaction volume, value, success rate, chip usage, and card utilization change over time?
 2. Which customer segments and regions have the greatest spending potential or marketing opportunity?
 
-`risk management`
+`Risk management`
 
 3. Which customers or credit-score groups have elevated debt-to-income or credit exposure risk?
 4. Which transactions contain rule-based indicators of suspicious unusual activity, repeated transactions in short-terms, or frequent errors?
@@ -76,17 +74,6 @@ The bank needs a repeatable data preparation and reporting process that improves
 ## Key Findings and Insights
 
 <!-- Add validated findings and insights after completing the data assessment and report# review. -->
-
-`customer profiling`
-
-- majority of customers are in middle age ranges, but there is a rising trend in GenZ customers.
-- Avg. Debt is generally higher than Avg. Income. However, Avg. Income is greater than Avg. Income Per Capita.
-- Active customers is now 303, which is a "red alert" as it is way less than 2,000 customers in the database.
-- Card per customer ratio is 3:1 while cards with chips are just 5,500.
-- Payment counts decrease from Oct, Nov, and Dec but increase later on during 1-year period.
-- Online payment dominates other payment types.
-- Active cards and spending plunge in Feb.
-- Most customers locate in East-West areas/states. Much less live in Middle/High-land.
 
 ## How to Run the Project
 
