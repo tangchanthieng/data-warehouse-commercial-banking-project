@@ -1,6 +1,6 @@
 ## Data Warehouse Commercial Banking Project
 
-Updated on September 2025
+Updated on September 2026
 
 ## Project Summary
 
@@ -20,14 +20,17 @@ The bank needs a repeatable data preparation and reporting process that improves
 
 `Operations and marketing`
 
-1. How do retention rate, active customers, transaction volume, value, success rate, chip usage, and card utilization change over time?
-2. Which customer segments and regions have the greatest spending potential or marketing opportunity?
+Q1. How do active customers, transaction volume, value, success rate, chip usage, and card utilization change over time?
+
+Q2. Which customer segments and regions have the greatest spending potential or marketing opportunity?
 
 `Risk management`
 
-3. Which customers or credit-score groups have elevated debt-to-income or credit exposure risk?
-4. Which transactions contain rule-based indicators of suspicious unusual activity, repeated transactions in short-terms, or frequent errors?
-5. Which customers, cards, merchants, and merchant categories show the highest value transaction risk or error rates?
+Q3. Which customers or credit-score groups have elevated debt-to-income or credit exposure risk?
+
+Q4. Which transactions contain rule-based indicators of suspicious unusual activity, repeated transactions in short-terms, or frequent error
+
+Q5. Which customers, cards, merchants, and merchant categories show the highest value transaction risk or error rates?
 
 ## Project Objectives
 
@@ -105,15 +108,14 @@ python -m pip install matplotlib seaborn jupyter
 
 Run these scripts in SQL Server Management Studio or another SQL Server client, in order:
 
-```text
+```
 sql/create_db.sql
-sql/create_t Server syntax.
+sql/create_table.sql
 
 ### Run the Python Pipeline
 
-Run these commands from the project root, in order:
+### Run these commands from the project root, in order:
 
-```powershell
 python python/extract.py
 python python/validate.py
 python python/load_bronze.py
