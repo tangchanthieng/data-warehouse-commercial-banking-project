@@ -225,12 +225,13 @@ python -m pip install matplotlib seaborn jupyter
 
 Run these scripts in SQL Server Management Studio or another SQL Server client, in order:
 
-```
+```sql
 sql/create_db.sql
 sql/create_table.sql
+```
 
+```python
 ### Run the Python Pipeline
-
 ### Run these commands from the project root, in order:
 
 python python/extract.py
@@ -246,7 +247,7 @@ The pipeline reads from `data/raw`, writes staging file, loads the Bronze and Si
 
 Run the following SQL scripts after the Python pipeline completes:
 
-```text
+```sql
 sql/load_gold.sql
 sql/create_views.sql
 ```
